@@ -1,25 +1,4 @@
-from tkinter import *
-import tkinter.font as tkFont 
-import pickle
-import os.path
-import time
-import hashlib
-from PIL import ImageTk,Image
-from datetime import date
-
-backgroundColour = "#204060"
-buttonColour = "#990000"
-staffFile = "staffDb"
-studentFile = "studentDb"
-booksFile = "booksDb"
-staffMasterObject = {}
-studentMasterObject = {}
-booksMasterObject = {}
-studentMaxBookCount = 5
-textLight = "white"
-currentPerson = {}
-textMainView = "#ffe6cc"
-innerFrameColour = "#1a0d00"
+from globalVar import *
 
 root = Tk()
 root.attributes("-alpha",0.5)
@@ -27,204 +6,24 @@ myFont = tkFont.Font(family = "Times",size = 12,weight = "bold")
 bigFont = tkFont.Font(family = "Times",size = 30,weight = "bold")
 reducedFont = tkFont.Font(family = "Times",size = 10)
 
-if os.path.exists(staffFile):
-	f = open(staffFile,"rb")
-	staffMasterObject = pickle.load(f)
-	f.close()
-
-
-if os.path.exists(studentFile):
-	f = open(studentFile,"rb")
-	studentMasterObject = pickle.load(f)
-	f.close()
-
-
-if os.path.exists(booksFile):
-	f = open(booksFile,"rb")
-	booksMasterObject = pickle.load(f)
-	f.close()
-
-
+fontPacking = (myFont,bigFont,reducedFont)
 
 root.title("Library management System - Person Selection")
 root.config(bg = backgroundColour)
 
 #Common resources
 
-def isEmptyChecker(*args):
-	for item in args:
-		if item is "":
-			return True
-	return False
 
-def passwordMatch(userId,password,masterObject):
-	p = hashlib.md5()
-	p.update(password.encode())
-	if p.digest() == masterObject[userId]["password"]:
-		return True
-	else:
-		return False
+def staffInit(master,currentFrame):
+
+	print ("Staff selected")
+	newEx = existingOrNot(master,currentFrame,"Staff")
 
 
-def loadShelfView(personObject):
+def studentInit(master,currentFrame):
 
-	def callback(event):
-		personObject.bookClick(event.widget.item)
-		
-	#Classical books 
-	classic_counter = 0
-	classic_array = {}
-	for item in booksMasterObject:
-		if booksMasterObject[item]["genre"] == "Classic":
-			img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
-			a = classic_counter
-			classic_array[classic_counter] = Button(personObject.currentView.classicFrame,image = img,height = 70,width = 60)
-			classic_array[classic_counter].grid(row = 1,column = classic_counter,sticky = W,padx = 10)
-			classic_array[classic_counter].image = img
-			classic_array[classic_counter].item = item
-			classic_array[classic_counter].bind("<Button-1>",callback)
-			
-			classic_counter+=1
-
-
-	mystery_counter = 0
-	mystery_array = {}
-	for item in booksMasterObject:
-		if booksMasterObject[item]["genre"] == "Mystery":
-			img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
-			mystery_array[mystery_counter] = Button(personObject.currentView.mysteryFrame,image = img,height = 70,width = 60)
-			mystery_array[mystery_counter].grid(row = 1,column = mystery_counter,sticky = W,padx = 10)
-			mystery_array[mystery_counter].image = img
-			mystery_array[mystery_counter].item = item
-			mystery_array[mystery_counter].bind("<Button-1>",callback)
-			
-			mystery_counter+=1
-
-	scifi_counter = 0
-	scifi_array = {}
-	for item in booksMasterObject:
-		if booksMasterObject[item]["genre"] == "Scifi":
-			img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
-			scifi_array[scifi_counter] = Button(personObject.currentView.scifiFrame,image = img,height = 70,width = 60)
-			scifi_array[scifi_counter].grid(row = 1,column = scifi_counter,sticky = W,padx = 10)
-			scifi_array[scifi_counter].image = img
-			scifi_array[scifi_counter].item = item
-			scifi_array[scifi_counter].bind("<Button-1>",callback)
-			scifi_counter+=1
-
-	comedy_counter = 0
-	comedy_array = {}
-	for item in booksMasterObject:
-		if booksMasterObject[item]["genre"] == "Comedy":
-			img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
-			comedy_array[comedy_counter] = Button(personObject.currentView.comedyFrame,image = img,height = 70,width = 60)
-			comedy_array[comedy_counter].grid(row = 1,column = comedy_counter,sticky = W,padx = 10)
-			comedy_array[comedy_counter].image = img
-			comedy_array[comedy_counter].item = item
-			comedy_array[comedy_counter].bind("<Button-1>",callback)
-			comedy_counter+=1
-
-	horror_counter = 0
-	horror_array = {}
-	for item in booksMasterObject:
-		if booksMasterObject[item]["genre"] == "Horror":
-			img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
-			horror_array[horror_counter] = Button(personObject.currentView.horrorFrame,image = img,height = 70,width = 60)
-			horror_array[horror_counter].grid(row = 1,column = horror_counter,sticky = W,padx = 10)
-			horror_array[horror_counter].image = img
-			horror_array[horror_counter].item = item
-			horror_array[horror_counter].bind("<Button-1>",callback)
-			horror_counter+=1
-
-	nonFiction_counter = 0
-	nonFiction_array = {}
-	for item in booksMasterObject:
-		if booksMasterObject[item]["genre"] == "Non Fiction":
-			img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
-			#personObject.currentView.nonFictionFrame.grid_propagate(False)
-			#personObject.currentView.nonFictionFrame.grid_columnconfigure(nonFiction_counter,weight = 1)
-			nonFiction_array[nonFiction_counter] = Button(personObject.currentView.nonFictionFrame,image = img,height = 70,width = 60)
-			nonFiction_array[nonFiction_counter].grid(row = 1,column = nonFiction_counter,sticky = W,padx = 10)
-			nonFiction_array[nonFiction_counter].image = img
-			nonFiction_array[nonFiction_counter].item = img
-			nonFiction_array[nonFiction_counter].bind("<Button-1>",callback)
-			nonFiction_counter+=1
-
-
-	textBook_counter = 0
-	textBook_array = {}
-	for item in booksMasterObject:
-		if booksMasterObject[item]["genre"] == "Textbook":
-			img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
-			#personObject.currentView.textBookFrame.grid_propagate(False)
-			#personObject.currentView.textBookFrame.grid_columnconfigure(textBook_counter,weight = 1)
-			textBook_array[textBook_counter] = Button(personObject.currentView.textBookFrame,image = img,height = 70,width = 60)
-			textBook_array[textBook_counter].grid(row = 1,column = textBook_counter,sticky = W,padx = 10)
-			textBook_array[textBook_counter].image = img
-			textBook_array[textBook_counter].item = item
-			textBook_array[textBook_counter].bind("<Button-1>",callback)
-			textBook_counter+=1
-
-	magazines_counter = 0
-	magazines_array = {}
-	for item in booksMasterObject:
-		if booksMasterObject[item]["genre"] == "magazines":
-			img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
-			#personObject.currentView.magazinesFrame.grid_propagate(False)
-			#personObject.currentView.magazinesFrame.grid_columnconfigure(magazines_counter,weight = 1)
-			magazines_array[magazines_counter] = Button(personObject.currentView.magazinesFrame,image = img,height = 70,width = 60)
-			magazines_array[magazines_counter].grid(row = 1,column = magazines_counter,sticky = W,padx = 10)
-			magazines_array[magazines_counter].image = img
-			magazines_array[magazines_counter].item = item
-			magazines_array[magazines_counter].bind("<Button-1>",callback)
-			magazines_counter+=1
-
-
-
-
-
-def loadIssuedBooks(personObject):
-	
-	def callback(event):
-		personObject.issuedBookClick(event.widget.item)
-	
-	personObject.myIssuedBooksInnerView = Label(personObject.currentView.myIssuedBooksView,bg = backgroundColour)
-	personObject.myIssuedBooksInnerView.pack(fill = BOTH,expand = YES)
-	counter_row1 = 0
-	counter_row2 = 0
-	books_counter = 0
-	issued_books_array = {}
-	for item in personObject.personDetailsObject["issuedBooks"]:
-		img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
-		issued_books_array[books_counter] = Button(personObject.myIssuedBooksInnerView,image = img,height = 70,width = 60)
-		issued_books_array[books_counter].image = img
-		issued_books_array[books_counter].item = item
-		issued_books_array[books_counter].bind("<Button-1>",callback)
-		
-		#pack
-		if(counter_row1>=2):
-			issued_books_array[books_counter].grid(sticky = W,row = 1,column = counter_row2,padx = 10)
-			counter_row2+=1
-		else:
-			issued_books_array[books_counter].grid(sticky = W,row = 0,column = counter_row1,padx = 10)
-			counter_row1+=1
-		books_counter+=1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	print ("Student selected")
+	newEx = existingOrNot(master,currentFrame,"Student")
 
 
 class alertMessage:
@@ -238,7 +37,6 @@ class alertMessage:
 		dismissButton = Button(opSuccessTopLevel,text = "Dismiss",relief = RAISED,bg = buttonColour,font = myFont,fg = textLight,command = opSuccessTopLevel.destroy)
 		dismissButton.pack(padx = 50,pady = 10)
 		
-
 
 class mainView:
 
@@ -300,10 +98,6 @@ class mainView:
 
 
 
-
-
-
-
 		self.addRemoveUsersView = LabelFrame(self.mainViewFrame,text = "Edit Users",height = 230,width = 300,bg = backgroundColour,fg = textLight)
 		self.addRemoveUsersView.grid(row = 0,column  =2,sticky = N+S+E+W,padx = 5,pady = 5)
 
@@ -313,11 +107,7 @@ class mainView:
 		
 		self.myDetailsView = LabelFrame(self.mainViewFrame,text = "My Details ",height = 240,width = 300,bg = backgroundColour,fg = textLight )
 		self.myDetailsView.grid(row = 2,column  =2,padx = 5,pady = 5,sticky = N+S+E+W)
-		
-
-
-
-
+		self.bookDetailsView = LabelFrame(self.mainViewFrame)
 
 
 
@@ -353,8 +143,6 @@ class Person:
 		Label(self.currentView.myDetailsView,text = personDetailsObject["personType"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 6,column = 2,padx = 5,pady = 2,sticky = W)
 		
 
-
-
 		# Fine View
 		Label(self.currentView.totalFineView,text = "Your outstanding fine is:",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView,justify = CENTER,anchor = CENTER).grid(row = 0,padx = 5,pady = 5,sticky = N+E+W)
 		self.fineLabel = Label(self.currentView.totalFineView,text = "Rs. 0" ,padx = 5,pady = 2,bg = backgroundColour,font = bigFont,fg = "red",justify = CENTER,anchor = CENTER)
@@ -373,40 +161,47 @@ class Person:
 
 	def bookClick(self,bookId):
 		print(bookId,"selected")
-		self.bookIssueTop = Toplevel(bg = backgroundColour)
-		self.bookIssueTop.title("Issue Books")
-		self.bookIssueFrame = LabelFrame(self.bookIssueTop,text = "Issue Books",bg = backgroundColour,fg = textLight)
-		self.bookIssueFrame.pack(fill = BOTH,expand = YES)
-		Label(self.bookIssueFrame,text = "Title",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 0,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = "Author",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 1,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = "Publisher",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 2,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = "Genre",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 3,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = "Added By",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 4,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = "Added On",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 5,column = 0,padx = 5,pady = 2,sticky = W)
+
+		self.currentView.myDetailsView.grid_forget()
+		if(self.currentView.bookDetailsView.winfo_exists()):
+			self.currentView.bookDetailsView.destroy()
+		self.currentView.bookDetailsView = LabelFrame(self.currentView.mainViewFrame,text = "Book Details ",height = 240,width = 300,bg = backgroundColour,fg = textLight )
+		self.currentView.bookDetailsView.grid(row = 2,column  =2,padx = 5,pady = 5,sticky = N+S+E+W)
+		
+		#self.bookIssueTop = Toplevel(bg = backgroundColour)
+		#self.bookIssueTop.title("Issue Books")
+		#self.bookIssueFrame = LabelFrame(self.bookIssueTop,text = "Issue Books",bg = backgroundColour,fg = textLight)
+		#self.bookIssueFrame.pack(fill = BOTH,expand = YES)
+		Label(self.currentView.bookDetailsView,text = "Title",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 0,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Author",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 1,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Publisher",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 2,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Genre",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 3,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Added By",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 4,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Added On",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 5,column = 0,padx = 5,pady = 2,sticky = W)
 
 		for index in range(6):
-			Label(self.bookIssueFrame,text = ":",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = index,column = 1,padx = 2,pady = 2,sticky = W)
+			Label(self.currentView.bookDetailsView,text = ":",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = index,column = 1,padx = 2,pady = 2,sticky = W)
 		
-		Label(self.bookIssueFrame,text = booksMasterObject[bookId]["title"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 0,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = booksMasterObject[bookId]["author"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 1,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = booksMasterObject[bookId]["publisher"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 2,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = booksMasterObject[bookId]["genre"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 3,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = booksMasterObject[bookId]["addedBy"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 4,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.bookIssueFrame,text = booksMasterObject[bookId]["addedOn"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 5,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["title"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 0,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["author"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 1,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["publisher"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 2,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["genre"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 3,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["addedBy"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 4,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["addedOn"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 5,column = 2,padx = 5,pady = 2,sticky = W)
 		
-		self.issueEmptySpace = Label(self.bookIssueFrame,bg = backgroundColour)
+		self.issueEmptySpace = Label(self.currentView.bookDetailsView,bg = backgroundColour)
 		self.issueEmptySpace.grid(row = 6,columnspan = 3)
 		if booksMasterObject[bookId]["isIssued"] is False:
-			self.issueButton = Button(self.bookIssueFrame,text = "Issue",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont,command = lambda :self.issueBook(bookId))
+			self.issueButton = Button(self.currentView.bookDetailsView,text = "Issue",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont,command = lambda :self.issueBook(bookId))
 			self.issueButton.grid(columnspan = 3, row = 8,padx = 10,pady = 10)	
 		else:
-			Label(self.bookIssueFrame,text = "Issued By",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 6,column = 0,padx = 5,pady = 2,sticky = W)
-			Label(self.bookIssueFrame,text = ":",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 6,column = 1,padx = 2,pady = 2,sticky = W)
-			Label(self.bookIssueFrame,text = booksMasterObject[bookId]["issuedBy"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 6,column = 2,padx = 5,pady = 2,sticky = W)
+			Label(self.currentView.bookDetailsView,text = "Issued By",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 6,column = 0,padx = 5,pady = 2,sticky = W)
+			Label(self.currentView.bookDetailsView,text = ":",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 6,column = 1,padx = 2,pady = 2,sticky = W)
+			Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["issuedBy"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 6,column = 2,padx = 5,pady = 2,sticky = W)
 			
-			Label(self.bookIssueFrame,text = "Issued On",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 7,column = 0,padx = 5,pady = 2,sticky = W)
-			Label(self.bookIssueFrame,text = ":",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 7,column = 1,padx = 2,pady = 2,sticky = W)
-			Label(self.bookIssueFrame,text = booksMasterObject[bookId]["issuedOn"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 7,column = 2,padx = 5,pady = 2,sticky = W)
+			Label(self.currentView.bookDetailsView,text = "Issued On",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 7,column = 0,padx = 5,pady = 2,sticky = W)
+			Label(self.currentView.bookDetailsView,text = ":",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 7,column = 1,padx = 2,pady = 2,sticky = W)
+			Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["issuedOn"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 7,column = 2,padx = 5,pady = 2,sticky = W)
 				
 		
 
@@ -434,9 +229,13 @@ class Person:
 		f = open(booksFile,"wb")
 		pickle.dump(booksMasterObject,f)
 		f.close()
-		self.bookIssueTop.destroy()
+		#self.bookIssueTop.destroy()
+
+		self.currentView.bookDetailsView.grid_forget()
+		self.currentView.myDetailsView.grid(row = 2,column  =2,padx = 5,pady = 5,sticky = N+S+E+W)
 		if self.myIssuedBooksInnerView is not None:
 			self.myIssuedBooksInnerView.destroy()
+		loadShelfView(self)
 		loadIssuedBooks(self)
 
 		print(staffMasterObject)
@@ -445,35 +244,42 @@ class Person:
 
 	def issuedBookClick(self,bookId):
 		print("Isssued",bookId)
-		self.myBooksTop = Toplevel(bg = backgroundColour)
-		self.myBooksTop.title("My Books")
-		self.myBooksFrame = LabelFrame(self.myBooksTop,text = "Issued Books",bg = backgroundColour,fg = textLight)
-		self.myBooksFrame.pack(fill = BOTH,expand = YES)
-		Label(self.myBooksFrame,text = "Title",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 0,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = "Author",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 1,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = "Publisher",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 2,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = "Genre",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 3,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = "Added By",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 4,column = 0,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = "Added On",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 5,column = 0,padx = 5,pady = 2,sticky = W)
+		if(self.currentView.bookDetailsView.winfo_exists()):
+			self.currentView.bookDetailsView.destroy()
+		self.currentView.myDetailsView.grid_forget()
+		self.currentView.bookDetailsView = LabelFrame(self.currentView.mainViewFrame,text = "Book Details ",height = 240,width = 300,bg = backgroundColour,fg = textLight )
+		self.currentView.bookDetailsView.grid(row = 2,column  =2,padx = 5,pady = 5,sticky = N+S+E+W)
+		
+
+		#self.myBooksTop = Toplevel(bg = backgroundColour)
+		#self.myBooksTop.title("My Books")
+		#self.myBooksFrame = LabelFrame(self.myBooksTop,text = "Issued Books",bg = backgroundColour,fg = textLight)
+		#self.myBooksFrame.pack(fill = BOTH,expand = YES)
+		Label(self.currentView.bookDetailsView,text = "Title",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 0,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Author",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 1,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Publisher",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 2,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Genre",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 3,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Added By",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 4,column = 0,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = "Added On",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 5,column = 0,padx = 5,pady = 2,sticky = W)
 
 		for index in range(6):
-			Label(self.myBooksFrame,text = ":",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = index,column = 1,padx = 2,pady = 2,sticky = W)
+			Label(self.currentView.bookDetailsView,text = ":",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = index,column = 1,padx = 2,pady = 2,sticky = W)
 		
-		Label(self.myBooksFrame,text = booksMasterObject[bookId]["title"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 0,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = booksMasterObject[bookId]["author"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 1,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = booksMasterObject[bookId]["publisher"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 2,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = booksMasterObject[bookId]["genre"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 3,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = booksMasterObject[bookId]["addedBy"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 4,column = 2,padx = 5,pady = 2,sticky = W)
-		Label(self.myBooksFrame,text = booksMasterObject[bookId]["addedOn"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 5,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["title"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 0,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["author"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 1,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["publisher"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 2,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["genre"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 3,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["addedBy"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 4,column = 2,padx = 5,pady = 2,sticky = W)
+		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["addedOn"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 5,column = 2,padx = 5,pady = 2,sticky = W)
 		
-		self.issueEmptySpace = Label(self.myBooksFrame,bg = backgroundColour)
+		self.issueEmptySpace = Label(self.currentView.bookDetailsView,bg = backgroundColour)
 		self.issueEmptySpace.grid(row = 6,columnspan = 3,pady = 10,padx = 10)
 
-		self.readButton = Button(self.myBooksFrame,text = "Read",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont)
+		self.readButton = Button(self.currentView.bookDetailsView,text = "Read",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont)
 		self.readButton.grid(column = 0, row = 7)
 
 
-		self.returnButton = Button(self.myBooksFrame,text = "Return",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont,command = lambda :self.returnBook(bookId))
+		self.returnButton = Button(self.currentView.bookDetailsView,text = "Return",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont,command = lambda :self.returnBook(bookId))
 		self.returnButton.grid(column = 2, row = 7,pady = 10,padx = 10)
 
 	def returnBook(self,bookId):
@@ -508,8 +314,11 @@ class Person:
 		f = open(booksFile,"wb")
 		pickle.dump(booksMasterObject,f)
 		f.close()
-		self.myBooksTop.destroy()
+		#self.myBooksTop.destroy()
+		self.currentView.bookDetailsView.grid_forget()
+		self.currentView.myDetailsView.grid(row = 2,column  =2,padx = 5,pady = 5,sticky = N+S+E+W)
 		self.myIssuedBooksInnerView.destroy()
+		loadShelfView(self)
 		loadIssuedBooks(self)
 
 		print(staffMasterObject)
@@ -625,19 +434,8 @@ class Staff(Person):
 			#currentPerson = Staff(self.master,staffMasterObject[employeeId])
 
 
-
-
-	
-
 	def removeBooks(self):
 		pass
-
-
-
-
-
-
-
 
 
 class staffCreationForm:
@@ -679,7 +477,7 @@ class staffCreationForm:
 		self.dobDayEntry = Entry(self.newFrame,width = 10,justify = RIGHT)
 		self.dobDayEntry.insert(END,"Enter day")
 		self.dobDayEntry.grid(row = 6,column = 0,pady = 3,padx = 5)
-		self.dobMonthEntry = Spinbox(self.newFrame,width = 10,justify = RIGHT,values = ("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+		self.dobMonthEntry = Spinbox(self.newFrame,width = 10,justify = RIGHT,values = monthList)
 		self.dobMonthEntry.grid(row = 6,column = 1,pady = 3,padx = 5)
 		self.dobYearEntry = Spinbox(self.newFrame,width = 10,justify = RIGHT,from_ = 1950,to = 2000)
 		self.dobYearEntry.grid(row = 6,column = 2,pady = 3,padx = 5)
@@ -717,9 +515,10 @@ class staffCreationForm:
 			self.emptySpace.config(text = "One or more entries empty",fg = "red")
 		elif not createPassword==retypePassword:
 			self.emptySpace.config(text = "Passwords not matching",fg = "red")
-		#elif dateNotRight(dobDay,dobMonth,dobYear):
-		#	self.emptySpace.config(text = "D.O.B date incorrect",fg = "red")
-
+		elif dateNotRight(dobDay,dobMonth,dobYear):
+			self.emptySpace.config(text = "D.O.B date incorrect",fg = "red")
+		elif not (gender=="Male" or gender == "Female"):
+			self.emptySpace.config(text = "Gender data invalid",fg = "red")
 		else:
 			dateOfBirth = (dobDay,dobMonth,dobYear)
 			staffMasterObject[employeeId] = {}
@@ -784,15 +583,6 @@ class staffLogin:
 			currentPerson = Staff(self.master,staffMasterObject[userId])
 
 
-
-
-
-
-
-
-
-
-
 #EO STAFF CLASS
 
 
@@ -814,9 +604,6 @@ class Student(Person):
 				totalFine+=delta.days-1
 		self.fineLabel.config(text = "Rs. "+str(totalFine))
 		
-
-
-
 
 
 class  studentCreationForm:
@@ -868,7 +655,7 @@ class  studentCreationForm:
 		self.dobDayEntry = Entry(self.newFrame,width = 10,justify = RIGHT)
 		self.dobDayEntry.insert(END,"Enter day")
 		self.dobDayEntry.grid(row = 9,column = 0,pady = 3,padx = 5)
-		self.dobMonthEntry = Spinbox(self.newFrame,width = 10,justify = RIGHT,values = ("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+		self.dobMonthEntry = Spinbox(self.newFrame,width = 10,justify = RIGHT,values = monthList)
 		self.dobMonthEntry.grid(row = 9,column = 1,pady = 3,padx = 5)
 		self.dobYearEntry = Spinbox(self.newFrame,width = 10,justify = RIGHT,from_ = 1950,to = 2000)
 		self.dobYearEntry.grid(row = 9,column = 2,pady = 3,padx = 5)
@@ -906,8 +693,10 @@ class  studentCreationForm:
 			self.emptySpace.config(text = "One or more fields empty",fg = "red")
 		elif not createPassword==retypePassword:
 			self.emptySpace.config(text = "Passwords not matching",fg = "red")
-		#elif dateNotRight(dobDay,dobMonth,dobYear):
-		#	self.emptySpace.config(text = "D.O.B date incorrect",fg = "red")
+		elif dateNotRight(dobDay,dobMonth,dobYear):
+			self.emptySpace.config(text = "D.O.B date incorrect",fg = "red")
+		elif not (gender=="Male" or gender == "Female"):
+			self.emptySpace.config(text = "Gender data invalid",fg = "red")
 		else:
 			dateOfBirth = (dobDay,dobMonth,dobYear)
 
@@ -983,12 +772,6 @@ class studentLogin:
 
 
 
-
-
-
-
-
-
 class existingOrNot:
 	def __init__(self,master,currentFrame,personString):
 		
@@ -1025,19 +808,6 @@ class existingOrNot:
 
 
 
-
-
-def staffInit(master,currentFrame):
-	print ("Staff selected")
-	newEx = existingOrNot(master,currentFrame,"Staff")
-
-
-
-
-def studentInit(master,currentFrame):
-	print ("Student selected")
-	newEx = existingOrNot(master,currentFrame,"Student")
-	
 
 #root.minsize(1000,500)
 #root.maxsize(1000,500)
