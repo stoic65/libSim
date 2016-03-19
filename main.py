@@ -11,6 +11,7 @@ fontPacking = (myFont,bigFont,reducedFont)
 root.title("Library management System - Person Selection")
 root.config(bg = backgroundColour)
 
+
 #Common resources
 
 
@@ -24,6 +25,45 @@ def studentInit(master,currentFrame):
 
 	print ("Student selected")
 	newEx = existingOrNot(master,currentFrame,"Student")
+
+			
+def fineDetails(personObject,personDetailsObject):
+	if(personDetailsObject["personType"]=="Staff"):
+		return
+
+	primaryKey = personDetailsObject["studentPrimaryKey"]
+	if studentMasterObject[primaryKey]["issuedBookCounter"]==0:
+		return
+	top = Toplevel()
+	top.title("Fine details")
+	mainLabel = Label(top,bg = backgroundColour)
+	mainLabel.pack(fill = BOTH,ipadx = 20,ipady = 20)
+	Label(mainLabel,text = "Previous Fines Total = "+str(studentMasterObject[primaryKey]["currentFine"]),bg = backgroundColour,fg = textLight,font = myFont).pack(fill = BOTH)
+
+	for item in studentMasterObject[primaryKey]["issuedBooks"]:
+		curFine = 0
+		d0 = date(int(booksMasterObject[item]["issuedOn"][2]),int(booksMasterObject[item]["issuedOn"][1]),int(booksMasterObject[item]["issuedOn"][0]))
+		d1 = date(int(time.strftime("%y")),int(time.strftime("%m")),int(time.strftime("%d")))
+		delta = d1 - d0
+		if(delta.days>=2):
+			curFine+=delta.days-1
+		Label(mainLabel,text = booksMasterObject[item]["title"]+"  :  "+str(curFine),bg = backgroundColour,fg = textLight,font = myFont).pack(fill = BOTH)
+
+
+def readBook(bookId):
+	top = Toplevel()
+	f = open(booksMasterObject[bookId]["bookPath"],"r")
+
+	#scroll = Scrollbar(top)
+	#scroll.pack(side = RIGHT,fill = Y)
+
+	textFrame = Text(top,font = myFont,height = 700)
+	textFrame.insert(INSERT,f.read())
+	textFrame.pack()
+
+	pass
+
+
 
 
 class alertMessage:
@@ -42,6 +82,9 @@ class mainView:
 
 	def __init__(self,master,parentObject,personDetailsObject):
 		#Create all the views including all the frames
+		#root.minsize(1300,750)
+		root.maxsize(1300,750)
+
 		print (personDetailsObject)
 		self.master  = master 
 		self.master.title("Main View")
@@ -90,6 +133,15 @@ class mainView:
 		self.textBookFrame.grid(row=6,sticky = E+W)
 		self.magazinesFrame = LabelFrame(self.innerFrame,text = "Magazines",height = 80,width = 700,bg = innerFrameColour,fg = textLight)
 		self.magazinesFrame.grid(row=7,sticky = E+W)
+
+		#More Button creation 
+		for idx,item in enumerate(genreList):
+			createMoreButton(item,self.innerFrame,parentObject,idx);
+
+		#Creating more Frame
+		self.moreFrame = None
+
+
 		self.innerFrame.grid_propagate(False)
 		self.innerFrame.grid_columnconfigure(0,weight = 1)
 		for i in range(8):
@@ -109,6 +161,21 @@ class mainView:
 		self.myDetailsView.grid(row = 2,column  =2,padx = 5,pady = 5,sticky = N+S+E+W)
 		self.bookDetailsView = LabelFrame(self.mainViewFrame)
 
+
+		#Filter Books
+		self.filterBooksView.rowconfigure(0,weight = 1)
+		#self.filterBooksView.rowconfigure(1,weight = 1)
+		self.innerFilterBooksView = Frame(self.filterBooksView)
+		self.searchFrame = LabelFrame(self.filterBooksView,text = "Search Books",height = 120,width = 300,bg = backgroundColour,fg = textLight)
+		self.searchFrame.pack(fill = BOTH)
+		self.authorFilterFrame = LabelFrame(self.filterBooksView,text = "Filter by Name",height = 120,width = 300,bg = backgroundColour,fg = textLight)
+		self.authorFilterFrame.pack(fill = BOTH)
+
+		#Inside search Frame
+		self.searchField = Entry(self.searchFrame)
+		self.searchField.grid(row = 0,pady = 25,padx = 8,column = 0)
+		self.searchSubmit = Button(self.searchFrame,text = "Submit") 
+		self.searchSubmit.grid(row = 0,column = 1,pady = 25,padx = 8)
 
 
 
@@ -146,7 +213,7 @@ class Person:
 		# Fine View
 		Label(self.currentView.totalFineView,text = "Your outstanding fine is:",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView,justify = CENTER,anchor = CENTER).grid(row = 0,padx = 5,pady = 5,sticky = N+E+W)
 		self.fineLabel = Label(self.currentView.totalFineView,text = "Rs. 0" ,padx = 5,pady = 2,bg = backgroundColour,font = bigFont,fg = "red",justify = CENTER,anchor = CENTER)
-		self.fineLabel.grid(row = 1,padx = 70,pady = 40,sticky = E+W+S)
+		self.fineLabel.grid(row = 0,padx = 70,pady = 40,sticky = E+W+N)
 		
 		#Loading books in mainshelf
 		
@@ -157,10 +224,21 @@ class Person:
 		loadIssuedBooks(self)
 
 
+		#
+		self.currentView.totalFineView.details = Button(self.currentView.totalFineView,text = "Details",relief = RAISED,fg = textLight,bg = buttonColour,font = myFont,width = 15,command = lambda: fineDetails(self,personDetailsObject))
+		self.currentView.totalFineView.details.grid(row = 1,sticky = W+E+S,padx = 70)
+		
 
 
-	def bookClick(self,bookId):
+
+	def bookClick(self,bookId,bookWidget):
 		print(bookId,"selected")
+		if hasattr(self,"removeBookMode"):
+			if(self.removeBookMode == True):
+				if(booksMasterObject[bookId]["isIssued"] == False):
+					bookWidget.grid_forget()
+					del booksMasterObject[bookId]
+					return
 
 		self.currentView.myDetailsView.grid_forget()
 		if(self.currentView.bookDetailsView.winfo_exists()):
@@ -193,7 +271,7 @@ class Person:
 		self.issueEmptySpace.grid(row = 6,columnspan = 3)
 		if booksMasterObject[bookId]["isIssued"] is False:
 			self.issueButton = Button(self.currentView.bookDetailsView,text = "Issue",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont,command = lambda :self.issueBook(bookId))
-			self.issueButton.grid(columnspan = 3, row = 8,padx = 10,pady = 10)	
+			self.issueButton.grid(columnspan = 2, row = 8,padx = 10,column = 1)	
 		else:
 			Label(self.currentView.bookDetailsView,text = "Issued By",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 6,column = 0,padx = 5,pady = 2,sticky = W)
 			Label(self.currentView.bookDetailsView,text = ":",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 6,column = 1,padx = 2,pady = 2,sticky = W)
@@ -208,6 +286,14 @@ class Person:
 
 	def issueBook(self,bookId):
 		#if student check limit
+		if(self.personDetailsObject["personType"] == "Staff"):
+			if staffMasterObject[self.personDetailsObject["employeeId"]]["issuedBookCounter"]>=6:
+				return
+
+		if(self.personDetailsObject["personType"] == "Student"):
+			if studentMasterObject[self.personDetailsObject["studentPrimaryKey"]]["issuedBookCounter"]>=3:
+				return
+
 		booksMasterObject[bookId]["isIssued"] = True
 		booksMasterObject[bookId]["issuedBy"] = self.personDetailsObject["name"]
 		booksMasterObject[bookId]["issuedOn"] = (time.strftime("%d"),time.strftime("%m"),time.strftime("%y"))
@@ -215,12 +301,16 @@ class Person:
 
 		if(self.personDetailsObject["personType"] == "Staff"):
 			staffMasterObject[self.personDetailsObject["employeeId"]]["issuedBooks"].append(bookId)
+			staffMasterObject[self.personDetailsObject["employeeId"]]["issuedBookCounter"]+=1
+			
 			booksMasterObject[bookId]["issueHistory"].append(((int(time.strftime("%d")),int(time.strftime("%m")),int(time.strftime("%y"))),self.personDetailsObject["employeeId"]))
 			f = open(staffFile,"wb")
 			pickle.dump(staffMasterObject,f)
 			f.close()
 		else:
 			studentMasterObject[self.personDetailsObject["studentPrimaryKey"]]["issuedBooks"].append(bookId)
+			studentMasterObject[self.personDetailsObject["studentPrimaryKey"]]["issuedBookCounter"]+=1;
+			
 			booksMasterObject[bookId]["issueHistory"].append(((int(time.strftime("%d")),int(time.strftime("%m")),int(time.strftime("%y"))),self.personDetailsObject["studentPrimaryKey"]))
 			f = open(studentFile,"wb")
 			pickle.dump(studentMasterObject,f)
@@ -235,7 +325,14 @@ class Person:
 		self.currentView.myDetailsView.grid(row = 2,column  =2,padx = 5,pady = 5,sticky = N+S+E+W)
 		if self.myIssuedBooksInnerView is not None:
 			self.myIssuedBooksInnerView.destroy()
-		loadShelfView(self)
+		if self.currentView.moreFrame !=None:
+			if self.currentView.moreFrame.winfo_exists():
+				showMore(currentGenre,self)
+			else:
+				loadShelfView(self)
+		else:
+			loadShelfView(self)
+
 		loadIssuedBooks(self)
 
 		print(staffMasterObject)
@@ -251,10 +348,6 @@ class Person:
 		self.currentView.bookDetailsView.grid(row = 2,column  =2,padx = 5,pady = 5,sticky = N+S+E+W)
 		
 
-		#self.myBooksTop = Toplevel(bg = backgroundColour)
-		#self.myBooksTop.title("My Books")
-		#self.myBooksFrame = LabelFrame(self.myBooksTop,text = "Issued Books",bg = backgroundColour,fg = textLight)
-		#self.myBooksFrame.pack(fill = BOTH,expand = YES)
 		Label(self.currentView.bookDetailsView,text = "Title",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 0,column = 0,padx = 5,pady = 2,sticky = W)
 		Label(self.currentView.bookDetailsView,text = "Author",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 1,column = 0,padx = 5,pady = 2,sticky = W)
 		Label(self.currentView.bookDetailsView,text = "Publisher",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 2,column = 0,padx = 5,pady = 2,sticky = W)
@@ -273,14 +366,14 @@ class Person:
 		Label(self.currentView.bookDetailsView,text = booksMasterObject[bookId]["addedOn"],padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textMainView).grid(row = 5,column = 2,padx = 5,pady = 2,sticky = W)
 		
 		self.issueEmptySpace = Label(self.currentView.bookDetailsView,bg = backgroundColour)
-		self.issueEmptySpace.grid(row = 6,columnspan = 3,pady = 10,padx = 10)
+		self.issueEmptySpace.grid(row = 6,columnspan = 3,padx = 10)
 
-		self.readButton = Button(self.currentView.bookDetailsView,text = "Read",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont)
-		self.readButton.grid(column = 0, row = 7)
+		self.readButton = Button(self.currentView.bookDetailsView,text = "Read",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont,command = lambda:readBook(bookId))
+		self.readButton.grid(column = 0, row = 7,padx = 40)
 
 
 		self.returnButton = Button(self.currentView.bookDetailsView,text = "Return",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont,command = lambda :self.returnBook(bookId))
-		self.returnButton.grid(column = 2, row = 7,pady = 10,padx = 10)
+		self.returnButton.grid(column = 2, row = 7,padx = 5)
 
 	def returnBook(self,bookId):
 		print("return",bookId)
@@ -288,11 +381,13 @@ class Person:
 
 		if(self.personDetailsObject["personType"] == "Staff"):
 			staffMasterObject[self.personDetailsObject["employeeId"]]["issuedBooks"].remove(bookId)
+			staffMasterObject[self.personDetailsObject["employeeId"]]["issuedBookCounter"]-=1
 			f = open(staffFile,"wb")
 			pickle.dump(staffMasterObject,f)
 			f.close()
 		else:
 			studentMasterObject[self.personDetailsObject["studentPrimaryKey"]]["issuedBooks"].remove(bookId)
+			studentMasterObject[self.personDetailsObject["studentPrimaryKey"]]["issuedBookCounter"]-=1
 			d0 = date(int(booksMasterObject[bookId]["issuedOn"][2]),int(booksMasterObject[bookId]["issuedOn"][1]),int(booksMasterObject[bookId]["issuedOn"][0]))
 			d1 = date(int(time.strftime("%y")),int(time.strftime("%m")),int(time.strftime("%d")))
 			delta = d1 - d0
@@ -318,7 +413,14 @@ class Person:
 		self.currentView.bookDetailsView.grid_forget()
 		self.currentView.myDetailsView.grid(row = 2,column  =2,padx = 5,pady = 5,sticky = N+S+E+W)
 		self.myIssuedBooksInnerView.destroy()
-		loadShelfView(self)
+		if self.currentView.moreFrame !=None:
+			if self.currentView.moreFrame.winfo_exists():
+				showMore(currentGenre,self)
+			else:
+				loadShelfView(self)
+		else:
+			loadShelfView(self)
+			
 		loadIssuedBooks(self)
 
 		print(staffMasterObject)
@@ -347,9 +449,13 @@ class Staff(Person):
 		Person.__init__(self,master,personDetailsObject)
 		#Adding books
 
-		Button(self.currentView.addRemoveBooksView,text = "Add Book",fg = textLight,bg = buttonColour,width = 10,command = self.addBook).grid(column = 0,row = 0,padx = 30,pady = 70)
-		Button(self.currentView.addRemoveBooksView,text = "Remove Book",fg = textLight,bg = buttonColour,width = 10,command = self.removeBooks).grid(column = 1,row = 0,padx = 0,pady = 70)
+		Button(self.currentView.addRemoveBooksView,text = "Add Book",fg = textLight,bg = buttonColour,width = 10,command = self.addBook).grid(column = 0,row = 0,padx = 30,pady = 50)
+		Button(self.currentView.addRemoveBooksView,text = "Remove Book",fg = textLight,bg = buttonColour,width = 10,command = self.removeBooks).grid(column = 1,row = 0,padx = 0,pady = 50)
 
+		self.currentView.addRemoveBooksView.modeLabel  = Label(self.currentView.addRemoveBooksView,bg = backgroundColour,text = "Normal mode",fg = "red")
+		self.currentView.addRemoveBooksView.modeLabel.grid(row = 1,columnspan = 2,pady = 10)  
+
+		self.removeBookMode = False
 	def addBook(self):
 		self.addBookTop = Toplevel(bg = backgroundColour)
 		self.addBookFrame = LabelFrame(self.addBookTop,text = "Add a book",bg = backgroundColour,fg = textLight,height = 700,width = 500)
@@ -399,7 +505,13 @@ class Staff(Person):
 		#Also include added on, added by
 		#cover image can be empty
 		if(isEmptyChecker(title,author,publisher,genre,isbn,bookPath)):
-			self.emptySpace.config(text = "Employee already exists",fg = "red")
+			self.emptySpace.config(text = "Some fields empty",fg = "red")
+		elif (not isbn.isdigit()) or (len(isbn) != 10):
+			self.emptySpace.config(text = "ISBN should be a 10 digit integer",fg = "red")
+		elif genre not in genreList:
+			self.emptySpace.config(text = "Please choose from given Genre",fg = "red")
+		elif not os.path.exists(bookPath+".gif"):
+			self.emptySpace.config(text = "Given Book path does't exist",fg = "red")
 		else:
 			#check if similar isbn already exists
 			counter = 0
@@ -430,13 +542,27 @@ class Staff(Person):
 			alertMessage("Book Successfuly added")
 
 			#refresh the mainViewHere
-			loadShelfView(self)
+
+			if self.currentView.moreFrame !=None:
+				if self.currentView.moreFrame.winfo_exists():
+					showMore(currentGenre,self)
+				else:
+					loadShelfView(self)
+			else:
+				loadShelfView(self)
+		
 			#currentPerson = Staff(self.master,staffMasterObject[employeeId])
 
 
 	def removeBooks(self):
-		pass
+		if(self.removeBookMode == False):
+			self.currentView.addRemoveBooksView.modeLabel.configure(text = "Warning : Now in remove book Mode")
+			self.removeBookMode = True
+		else :
+			self.currentView.addRemoveBooksView.modeLabel.configure(text = "Normal Mode")
+			self.removeBookMode = False
 
+		
 
 class staffCreationForm:
 	def __init__(self,master):
@@ -519,6 +645,10 @@ class staffCreationForm:
 			self.emptySpace.config(text = "D.O.B date incorrect",fg = "red")
 		elif not (gender=="Male" or gender == "Female"):
 			self.emptySpace.config(text = "Gender data invalid",fg = "red")
+		elif not phone.isdigit():
+			self.emptySpace.config(text = "Enter valid phone No",fg = "red")
+		elif not employeeId.isdigit():
+			self.emptySpace.config(text = "Enter valid Employee Id",fg = "red")
 		else:
 			dateOfBirth = (dobDay,dobMonth,dobYear)
 			staffMasterObject[employeeId] = {}
@@ -533,6 +663,7 @@ class staffCreationForm:
 			staffMasterObject[employeeId]["issuedBooks"] = []
 			staffMasterObject[employeeId]["employeeId"] = employeeId
 			staffMasterObject[employeeId]["currentFine"]= 0
+			staffMasterObject[employeeId]["issuedBookCounter"] = 0
 			
 
 
@@ -603,7 +734,7 @@ class Student(Person):
 			if(delta.days>=2):
 				totalFine+=delta.days-1
 		self.fineLabel.config(text = "Rs. "+str(totalFine))
-		
+
 
 
 class  studentCreationForm:
@@ -643,7 +774,7 @@ class  studentCreationForm:
 		
 		self.branchLabel = Label(self.newFrame,text = "Branch",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
 		self.branchLabel.grid(row = 6,column = 0,pady = 3,padx = 5,sticky = W)
-		self.branchEntry  = Spinbox(self.newFrame,width = 6,justify = RIGHT,values = ("COE","ECE","ICE","IT","MPAE"))
+		self.branchEntry  = Spinbox(self.newFrame,width = 6,justify = RIGHT,values = ("COE","ECE","ICE","IT","MPAE","BT"))
 		self.branchEntry.grid(row = 6,column = 2,pady = 3,padx = 5,sticky = W )
 		
 		self.yearLabel = Label(self.newFrame,text = "Year",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
@@ -697,6 +828,14 @@ class  studentCreationForm:
 			self.emptySpace.config(text = "D.O.B date incorrect",fg = "red")
 		elif not (gender=="Male" or gender == "Female"):
 			self.emptySpace.config(text = "Gender data invalid",fg = "red")
+		elif branch not in branchList:
+			self.emptySpace.config(text = "Choose from given Branches",fg = "red")
+		elif int(rollNo) not in range(1,1000):
+			self.emptySpace.config(text = "Roll No not in range",fg = "red")
+		elif int(year) not in range(12,17):
+			self.emptySpace.config(text = "Enrollment year not in range",fg = "red")
+		elif not phone.isdigit():
+			self.emptySpace.config(text = "Enter valid phone No",fg = "red")
 		else:
 			dateOfBirth = (dobDay,dobMonth,dobYear)
 
@@ -715,6 +854,7 @@ class  studentCreationForm:
 			studentMasterObject[studentPrimaryKey]["issuedBooks"] = [] 
 			studentMasterObject[studentPrimaryKey]["studentPrimaryKey"] = studentPrimaryKey
 			studentMasterObject[studentPrimaryKey]["currentFine"] = 0
+			studentMasterObject[studentPrimaryKey]["issuedBookCounter"] = 0
 
 
 			print (studentMasterObject)
@@ -809,8 +949,6 @@ class existingOrNot:
 
 
 
-#root.minsize(1000,500)
-#root.maxsize(1000,500)
 initFrame = Frame(root,bg = backgroundColour)
 initFrame.pack(fill = BOTH,expand = YES)
 staffInitButton = Button(initFrame,text = "Staff Login",relief = RAISED,height = 5,width = 50,bg= buttonColour,fg = textLight,font = myFont,command = lambda: staffInit(root,initFrame))
