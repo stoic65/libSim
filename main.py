@@ -150,7 +150,7 @@ class mainView:
 
 
 
-		self.addRemoveUsersView = LabelFrame(self.mainViewFrame,text = "Edit Users",height = 230,width = 300,bg = backgroundColour,fg = textLight)
+		self.addRemoveUsersView = LabelFrame(self.mainViewFrame,text = "Search Results",height = 230,width = 300,bg = backgroundColour,fg = textLight)
 		self.addRemoveUsersView.grid(row = 0,column  =2,sticky = N+S+E+W,padx = 5,pady = 5)
 
 		self.addRemoveBooksView = LabelFrame(self.mainViewFrame,text = "Add/Remove Books",height = 230,width = 300,bg = backgroundColour,fg = textLight)
@@ -168,14 +168,23 @@ class mainView:
 		self.innerFilterBooksView = Frame(self.filterBooksView)
 		self.searchFrame = LabelFrame(self.filterBooksView,text = "Search Books",height = 120,width = 300,bg = backgroundColour,fg = textLight)
 		self.searchFrame.pack(fill = BOTH)
-		self.authorFilterFrame = LabelFrame(self.filterBooksView,text = "Filter by Name",height = 120,width = 300,bg = backgroundColour,fg = textLight)
+		self.authorFilterFrame = LabelFrame(self.filterBooksView,text = "Filter by Author",height = 120,width = 300,bg = backgroundColour,fg = textLight)
 		self.authorFilterFrame.pack(fill = BOTH)
 
 		#Inside search Frame
 		self.searchField = Entry(self.searchFrame)
 		self.searchField.grid(row = 0,pady = 25,padx = 8,column = 0)
-		self.searchSubmit = Button(self.searchFrame,text = "Submit") 
+		self.searchSubmit = Button(self.searchFrame,text = "Submit",relief = RAISED,fg = textLight,bg = buttonColour,font = myFont,width = 7,command = lambda:searchBooks(self.searchField.get(),parentObject)) 
 		self.searchSubmit.grid(row = 0,column = 1,pady = 25,padx = 8)
+
+		#Author Searcch Entry
+		#self.authorSearchField = Spinbox(self.authorFilterFrame,values = authorList)
+		#self.authorSearchField.grid(row = 0,pady = 25,padx = 8,column = 0)
+		#self.authorSearchSubmit = Button(self.authorFilterFrame,text = "Submit",relief = RAISED,fg = textLight,bg = buttonColour,font = myFont,width = 7) 
+		#self.authorSearchSubmit.grid(row = 0,column = 1,pady = 25,padx = 8)
+		
+
+
 
 
 
@@ -238,6 +247,9 @@ class Person:
 				if(booksMasterObject[bookId]["isIssued"] == False):
 					bookWidget.grid_forget()
 					del booksMasterObject[bookId]
+					f = open(booksFile,"wb")
+					pickle.dump(booksMasterObject,f)
+					f.close()
 					return
 
 		self.currentView.myDetailsView.grid_forget()
@@ -327,6 +339,7 @@ class Person:
 			self.myIssuedBooksInnerView.destroy()
 		if self.currentView.moreFrame !=None:
 			if self.currentView.moreFrame.winfo_exists():
+				self.currentView.moreFrame.destroy()
 				showMore(currentGenre,self)
 			else:
 				loadShelfView(self)
@@ -466,42 +479,52 @@ class Staff(Person):
 		self.titleEntry.grid (row = 0,column = 2,pady = 3,padx = 5 )
 		
 
-		self.authorLabel = Label(self.addBookFrame,text = "Author Name",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
-		self.authorLabel.grid(row = 1,column = 0,pady = 3,padx = 5,sticky = W) 
-		self.authorEntry  = Entry(self.addBookFrame);
-		self.authorEntry.grid(row = 1,column = 2,pady = 3,padx = 5 )
+		self.authorLabel1 = Label(self.addBookFrame,text = "Author Name :1",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
+		self.authorLabel1.grid(row = 1,column = 0,pady = 3,padx = 5,sticky = W) 
+		self.authorEntry1  = Entry(self.addBookFrame);
+		self.authorEntry1.grid(row = 1,column = 2,pady = 3,padx = 5 )
+		
+		self.authorLabel2 = Label(self.addBookFrame,text = "Author Name:2",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
+		self.authorLabel2.grid(row = 2,column = 0,pady = 3,padx = 5,sticky = W) 
+		self.authorEntry2  = Entry(self.addBookFrame);
+		self.authorEntry2.grid(row = 2,column = 2,pady = 3,padx = 5 )
+		
+		self.authorLabel3 = Label(self.addBookFrame,text = "Author Name:3",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
+		self.authorLabel3.grid(row = 3,column = 0,pady = 3,padx = 5,sticky = W) 
+		self.authorEntry3  = Entry(self.addBookFrame);
+		self.authorEntry3.grid(row = 3,column = 2,pady = 3,padx = 5 )
 		
 		self.publisherLabel = Label(self.addBookFrame,text = "Publisher",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
-		self.publisherLabel.grid(row = 2,column = 0,pady = 3,padx = 5,sticky = W) 
+		self.publisherLabel.grid(row = 4,column = 0,pady = 3,padx = 5,sticky = W) 
 		self.publisherEntry  = Entry(self.addBookFrame);
-		self.publisherEntry.grid(row = 2,column = 2,pady = 3,padx = 5 )
+		self.publisherEntry.grid(row = 4,column = 2,pady = 3,padx = 5 )
 		
 		self.genreLabel = Label(self.addBookFrame,text = "Genre",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
-		self.genreLabel.grid(row = 3,column = 0,pady = 3,padx = 5,sticky = W) 
+		self.genreLabel.grid(row = 5,column = 0,pady = 3,padx = 5,sticky = W) 
 		self.genreEntry  = Spinbox(self.addBookFrame,values = ("Classic","Mystery","Scifi","Comedy","Horror","Non Fiction","Textbook"),width = 15,justify = RIGHT);
-		self.genreEntry.grid(row = 3,column = 2,pady = 3,padx = 5,sticky = W )
+		self.genreEntry.grid(row = 5,column = 2,pady = 3,padx = 5,sticky = W )
 		
 		self.isbnLabel = Label(self.addBookFrame,text = "ISBN",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
-		self.isbnLabel.grid(row = 4,column = 0,pady = 3,padx = 5,sticky = W) 
+		self.isbnLabel.grid(row = 6,column = 0,pady = 3,padx = 5,sticky = W) 
 		self.isbnEntry  = Entry(self.addBookFrame);
-		self.isbnEntry.grid(row = 4,column = 2,pady = 3,padx = 5 )
+		self.isbnEntry.grid(row = 6,column = 2,pady = 3,padx = 5 )
 
 		self.bookPathLabel = Label(self.addBookFrame,text = "Book Path",padx = 5,pady = 2,bg = backgroundColour,font = myFont,fg = textLight)
-		self.bookPathLabel.grid(row = 5,column = 0,pady = 3,padx = 5,sticky = W) 
+		self.bookPathLabel.grid(row = 7,column = 0,pady = 3,padx = 5,sticky = W) 
 		self.bookPathEntry  = Entry(self.addBookFrame);
-		self.bookPathEntry.grid(row = 5,column = 2,pady = 3,padx = 5 )
+		self.bookPathEntry.grid(row = 7,column = 2,pady = 3,padx = 5 )
 
 
-		for index in range(6): 
+		for index in range(8): 
 			Label(self.addBookFrame,text = ":",bg = backgroundColour).grid(row = index,column = 1)
 
 		self.emptySpace = Label(self.addBookFrame,bg = backgroundColour)
-		self.emptySpace.grid(row = 6,columnspan = 3)
-		self.submitForm = Button(self.addBookFrame,text = "Submit",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont,command = lambda :self.submitBookForm(self.titleEntry.get(),self.authorEntry.get(),self.publisherEntry.get(),self.genreEntry.get(),self.isbnEntry.get(),self.bookPathEntry.get()))
-		self.submitForm.grid(columnspan = 3, row = 7)
+		self.emptySpace.grid(row = 8,columnspan = 3)
+		self.submitForm = Button(self.addBookFrame,text = "Submit",relief = RAISED,bg = buttonColour,fg = textLight,font = myFont,command = lambda :self.submitBookForm(self.titleEntry.get(),self.authorEntry1.get(),self.authorEntry2.get(),self.authorEntry3.get(),self.publisherEntry.get(),self.genreEntry.get(),self.isbnEntry.get(),self.bookPathEntry.get()))
+		self.submitForm.grid(columnspan = 3, row = 9)
 		
 
-	def submitBookForm(self,title,author,publisher,genre,isbn,bookPath):
+	def submitBookForm(self,title,author,author2,author3,publisher,genre,isbn,bookPath):
 		#Also include added on, added by
 		#cover image can be empty
 		if(isEmptyChecker(title,author,publisher,genre,isbn,bookPath)):
@@ -519,7 +542,16 @@ class Staff(Person):
 				counter+=1
 			bookId = isbn+":"+str(counter)
 			booksMasterObject[bookId] = {}
-			
+			if author not in authorList:
+				authorList.append(author)
+
+
+			if author2 is not None:
+				author = author+':'+author2
+				if author2 not in authorList:
+					authorList.append(author2)
+			if author3 is not None:
+				author = author+':'+author3
 			booksMasterObject[bookId]["title"] = title
 			booksMasterObject[bookId]["author"] = author
 			booksMasterObject[bookId]["publisher"] = publisher
@@ -912,6 +944,8 @@ class studentLogin:
 
 
 
+
+#Gives option to choose between existing or new user
 class existingOrNot:
 	def __init__(self,master,currentFrame,personString):
 		
@@ -948,9 +982,11 @@ class existingOrNot:
 
 
 
-
+#Starting Frame for login
 initFrame = Frame(root,bg = backgroundColour)
 initFrame.pack(fill = BOTH,expand = YES)
+
+#Putting appropriate buttons to choose between student and staff
 staffInitButton = Button(initFrame,text = "Staff Login",relief = RAISED,height = 5,width = 50,bg= buttonColour,fg = textLight,font = myFont,command = lambda: staffInit(root,initFrame))
 staffInitButton.pack(side = TOP,padx = 100,pady = 50)
 

@@ -7,7 +7,8 @@ import time
 import hashlib
 from PIL import ImageTk,Image
 from datetime import date
-
+import nltk
+import re
 
 backgroundColour = "#204060"
 buttonColour = "#990000"
@@ -26,8 +27,8 @@ innerFrameColour = "#1a0d00"
 monthList  = ("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 genreList = ("Classic","Mystery","Scifi","Comedy","Horror","Non Fiction","Textbook","magazines")
 branchList = ("COE","ECE","ICE","IT","MPAE","BT")
-currentGenre = "Comedy"
-
+currentGenre = None
+authorList = ["Lewis Carol","Anne Frank"]
 
 if os.path.exists(staffFile):
 	f = open(staffFile,"rb")
@@ -318,6 +319,50 @@ def readBook(bookId):
 	textFrame.pack()
 
 	pass
+
+def matchQuery(query):
+	returnArray = []
+	for item in booksMasterObject:
+		bookstring = str(booksMasterObject[item]).lower()
+		searchObj = bookstring.find(query.lower())
+		
+		if searchObj != -1 :
+			returnArray.append(item)
+
+	return returnArray
+
+
+
+
+
+def searchBooks(query,personObject):
+	def callback(event):
+		personObject.bookClick(event.widget.item,event.widget)
+
+	personObject.currentView.addRemoveUsersView.destroy()
+	personObject.currentView.addRemoveUsersView = LabelFrame(personObject.currentView.mainViewFrame,text = "Search Results",height = 230,width = 300,bg = backgroundColour,fg = textLight)
+	personObject.currentView.addRemoveUsersView.grid(row = 0,column  =2,sticky = N+S+E+W,padx = 5,pady = 5)
+
+
+	arrayOfBookId = matchQuery(query)
+	bookCounter = 0
+	for item in arrayOfBookId:
+		counter = 0
+		img= ImageTk.PhotoImage(Image.open(booksMasterObject[item]["coverImagePath"]))
+		a = Button(personObject.currentView.addRemoveUsersView,image = img,height = 70,width = 60)
+		a.grid(row = int(bookCounter/4)+1,column = (bookCounter%4),sticky = W+N+S,padx = 6,pady = 5)
+		a.image = img
+		a.item = item
+		a.bind("<Button-1>",callback)
+		if booksMasterObject[item]["isIssued"] == True:
+			a.configure(state = "disable")
+		bookCounter+=1
+
+
+
+
+
+	print(arrayOfBookId)
 
 
 

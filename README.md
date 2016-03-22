@@ -25,15 +25,13 @@ python3 main.py
 4. The book will be available in the shelf you have selected
 
 ###Other features
+1. Now you can read the books you have issued
+2. Fine will added in case of student account if book  not returned in one day
+3. Search For books using the search bar
+4. Issued Books are visually different
 
-1. Fine will added in case of student account if book  not returned in one day
 
-##Yet to be implemented
-(Probably will be done in a day or two)
-1. Ability read book
-2. Changed representation of whether a book is issued or not
-3. Ability to sort and search books
-
+Note :- I know the code is rather long and untidy, but sorry for that :p
 
 
 
